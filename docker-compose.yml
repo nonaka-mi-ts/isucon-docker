@@ -1,0 +1,39 @@
+version: "0"
+services:
+  http:
+    image: "isucon-http"
+    build: ./http
+    ports:
+      - "8181"
+    links:
+      - app
+
+  app:
+    image: "isucon-app"
+    build:
+      context: ./app
+      args:
+        GITHUB_TOKEN: "${GITHUB_TOKEN}"
+    volumes:
+      - ../app:/var/www/isucon
+    command:
+      - php-fpm
+    links:
+      - db
+      - redis
+
+  db:
+    restart: always
+    image: mariadb:10.3.38
+    volumes:
+      - ../src/storage/logs/mysql/db-logs:/var/log/mysql
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    environment:
+      - "MYSQL_DATABASE=buyee"
+      - "MYSQL_ROOT_PASSWORD=apollo"
+    ports:
+      - "3906"
+
+  redis:
+    restart: always
+    image: redis:5.0.5
